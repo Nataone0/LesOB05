@@ -1,6 +1,6 @@
 import pygame
 import random
-
+import sys
 
 # Инициализация Pygame
 pygame.init()
@@ -43,21 +43,16 @@ class Ball:
             self.vy = -self.vy
 
 
-# Функция для отрисовки объектов и счета
 def draw(paddle, opponent, ball, player_score, opponent_score):
     screen.fill(BLACK)
     pygame.draw.rect(screen, WHITE, paddle.rect)
     pygame.draw.rect(screen, WHITE, opponent.rect)
     pygame.draw.ellipse(screen, WHITE, ball.rect)
-
-    # Рендеринг счета
     score_text = font.render(f"{player_score} : {opponent_score}", True, WHITE)
     screen.blit(score_text, (width // 2 - score_text.get_width() // 2, 20))
-
     pygame.display.flip()
 
 
-# Функция для сброса мяча
 def reset_ball(ball):
     ball.rect.x = width // 2
     ball.rect.y = height // 2
@@ -65,7 +60,6 @@ def reset_ball(ball):
     ball.vy = random.choice([-4, 4])
 
 
-# Основная функция игры
 def game():
     paddle = Paddle(width - 20, height // 2)
     opponent = Paddle(10, height // 2)
@@ -78,7 +72,8 @@ def game():
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                pygame.quit()
+                return False
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
@@ -86,16 +81,13 @@ def game():
         if keys[pygame.K_DOWN]:
             paddle.move(5)
 
-        # Простое движение ракетки компьютера
         opponent.move(2 if ball.rect.y > opponent.rect.y else -2)
 
-        # Проверка столкновений с ракетками
         if ball.rect.colliderect(paddle.rect) or ball.rect.colliderect(opponent.rect):
             ball.vx = -ball.vx
 
         ball.move()
 
-        # Оценка очков при ударе о боковые стенки
         if ball.rect.x <= 0:
             player_score += 1
             reset_ball(ball)
@@ -110,9 +102,12 @@ def game():
         draw(paddle, opponent, ball, player_score, opponent_score)
         clock.tick(60)
 
-    pygame.quit()
-    if input("Хотите сыграть еще раз? (да/нет): ").lower() == "да":
-        game()
+    return True
 
 
-game()
+# Цикл для повторения игры
+while True:
+    if not game():
+        break
+    if input("Хотите сыграть еще раз? (да/нет): ").lower() != "да":
+        break
